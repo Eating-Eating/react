@@ -120,6 +120,7 @@ function createRootImpl(
   options: void | RootOptions,
 ) {
   // Tag is either LegacyRoot or Concurrent Root
+  // 标签是LegacyRoot或Concurrent Root
   const hydrate = options != null && options.hydrate === true;
   const hydrationCallbacks =
     (options != null && options.hydrationOptions) || null;
@@ -128,7 +129,14 @@ function createRootImpl(
       options.hydrationOptions != null &&
       options.hydrationOptions.mutableSources) ||
     null;
+  // 指向fiberReconciler中的createFiberRoot方法，创建了一个FiberRoot节点
+  // 完成createContainer后，root即为FiberRootNode，fiberRoot的根节点元素，多了个current属性，指向rootFiber
+  // `const uninitializedFiber = createHostRootFiber(tag);`
+  // `root.current = uninitializedFiber;`
+  // 创建完fiberRoot之后，会将fiberRoot的实例的current属性指向刚创建的rootFiber
   const root = createContainer(container, tag, hydrate, hydrationCallbacks);
+
+  
   markContainerAsRoot(root.current, container);
 
   const rootContainerElement =

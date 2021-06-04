@@ -109,7 +109,7 @@ function shouldHydrateDueToLegacyHeuristic(container) {
     rootElement.hasAttribute(ROOT_ATTRIBUTE_NAME)
   );
 }
-
+// 检测是否需要hydrate以及进行hydrate
 function legacyCreateRootFromDOMContainer(
   container: Container,
   forceHydrate: boolean,
@@ -117,6 +117,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 先清除所有已存在的内容
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -148,7 +149,10 @@ function legacyCreateRootFromDOMContainer(
       );
     }
   }
-
+  // createLegacyRoot参数说明
+  // container: Container,
+  // tag: RootTag,
+  // options: void | RootOptions,
   return createLegacyRoot(
     container,
     shouldHydrate
@@ -171,7 +175,7 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
     }
   }
 }
-
+// 根节点第一项传空
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -190,6 +194,7 @@ function legacyRenderSubtreeIntoContainer(
   let fiberRoot;
   if (!root) {
     // Initial mount
+    // 初始化挂载
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -203,6 +208,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 初始化节点不需要批处理
     unbatchedUpdates(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
@@ -283,13 +289,14 @@ export function hydrate(
     callback,
   );
 }
-
+// 渲染方法
 export function render(
   element: React$Element<any>,
   container: Container,
   callback: ?Function,
 ) {
   invariant(
+    // 识别是否为dom elment
     isValidContainer(container),
     'Target container is not a DOM element.',
   );
@@ -305,6 +312,12 @@ export function render(
       );
     }
   }
+  // 调用容器中渲染子树的方法（参数分别是以下）
+  // parentComponent: ?React$Component<any, any>,
+  // children: ReactNodeList,
+  // container: Container,
+  // forceHydrate: boolean,
+  // callback: ?Function,
   return legacyRenderSubtreeIntoContainer(
     null,
     element,

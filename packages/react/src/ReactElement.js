@@ -129,6 +129,9 @@ function warnIfStringRefCannotBeAutoConverted(config) {
  * will not work. Instead test $$typeof field against Symbol.for('react.element') to check
  * if something is a React Element.
  *
+ *创建一个react函数的工厂方法。不再支持class模式，所以不要用new来调用。并且，instanceof检查也无效，
+ *尝试用$$typeof字段调用Symbol.for('react.element')来检测某某是否为react元素。
+ *
  * @param {*} type
  * @param {*} props
  * @param {*} key
@@ -139,22 +142,30 @@ function warnIfStringRefCannotBeAutoConverted(config) {
  * can warn. We want to get rid of owner and replace string `ref`s with arrow
  * functions, and as long as `this` and owner are the same, there will be no
  * change in behavior.
+ * 当React.createElement调用时，一个*临时*的帮助方法检测`this`的指向是否与`owner`的指向相同,
+ * 这样我们就可以发起警告。我们想避免owner用箭头函数替换ref，而且当this跟owner相同时，表现不会改变。
+ * 
  * @param {*} source An annotation object (added by a transpiler or otherwise)
  * indicating filename, line number, and/or other information.
+ * 一个注解对象（被转译器或其他东西添加）
+ * 指向文件名，
  * @internal
  */
 const ReactElement = function(type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
+    // 这个标签让我们来将其标识为React元素
     $$typeof: REACT_ELEMENT_TYPE,
 
     // Built-in properties that belong on the element
+    // 属于元素的内建属性
     type: type,
     key: key,
     ref: ref,
     props: props,
 
     // Record the component responsible for creating this element.
+    // 记录负责创建此元素的组件
     _owner: owner,
   };
 
@@ -163,12 +174,16 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
     // an external backing store so that we can freeze the whole object.
     // This can be replaced with a WeakMap once they are implemented in
     // commonly used development environments.
+    // 验证标识当前是可变的。我们将其放在外部后备存储上，以便冻结整个对象。
+    // 一旦它们在开发环境重使用，就会被WeakMap替代
     element._store = {};
 
     // To make comparing ReactElements easier for testing purposes, we make
     // the validation flag non-enumerable (where possible, which should
     // include every environment we run tests in), so the test framework
     // ignores it.
+    // 为了让比较React元素的测试意图更容易，我们做了一个不可枚举的验证标识（
+    // 只要可能，应该包含所有我们跑测试环境），所以测试框架忽略它
     Object.defineProperty(element._store, 'validated', {
       configurable: false,
       enumerable: false,
@@ -176,6 +191,7 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
       value: false,
     });
     // self and source are DEV only properties.
+    // self跟source时开发环境才有的属性
     Object.defineProperty(element, '_self', {
       configurable: false,
       enumerable: false,
@@ -183,7 +199,9 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
       value: self,
     });
     // Two elements created in two different places should be considered
+    // 两个元素被不同地方创建的情况应当被考虑
     // equal for testing purposes and therefore we hide it from enumeration.
+    // 测试目的是相同的，所以我们将其从枚举中隐藏起来
     Object.defineProperty(element, '_source', {
       configurable: false,
       enumerable: false,
@@ -209,6 +227,7 @@ export function jsx(type, config, maybeKey) {
   let propName;
 
   // Reserved names are extracted
+  // 提取保留名称
   const props = {};
 
   let key = null;
@@ -220,6 +239,10 @@ export function jsx(type, config, maybeKey) {
   // but as an intermediary step, we will use jsxDEV for everything except
   // <div {...props} key="Hi" />, because we aren't currently able to tell if
   // key is explicitly declared to be undefined or not.
+  // 目前，key可以作为一个prop传递。如果还明确声明了key，则会导致一个潜在的问题（
+  // 即：<div {...props} key="Hi" /> 或者 <div key="Hi" {...props} />）。我们
+  // 想弃用key的传递，但作为中间环节，我们会用jsxDEV处理除了 <div {...props} key="Hi" />
+  // 以外的所有事，因为我们目前无法明确说明密钥是否为undefined。
   if (maybeKey !== undefined) {
     key = '' + maybeKey;
   }
@@ -233,6 +256,7 @@ export function jsx(type, config, maybeKey) {
   }
 
   // Remaining properties are added to a new props object
+  // 剩余的属性将添加到新的props对象
   for (propName in config) {
     if (
       hasOwnProperty.call(config, propName) &&
@@ -243,6 +267,7 @@ export function jsx(type, config, maybeKey) {
   }
 
   // Resolve default props
+  // 处理默认props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {

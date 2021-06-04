@@ -92,15 +92,21 @@ export function createFiberRoot(
   hydrate: boolean,
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
 ): FiberRoot {
+  // new一个FiberRoot实例
   const root: FiberRoot = (new FiberRootNode(containerInfo, tag, hydrate): any);
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;
   }
 
   // Cyclic construction. This cheats the type system right now because
-  // stateNode is any.
+  // stateNode is any.  
+  // 通过createHostRootFiber方法创建fiber tree的根结点，即rootFiber
+  // fiber节点也会像DOM树结构一样形成一个fiber tree单链表树结构
+  // 每个DOM节点或者组件都会生成一个与之对应的fiber节点，在后续的调和(reconciliation)阶段起着至关重要的作用
   const uninitializedFiber = createHostRootFiber(tag);
+  // 创建完rootFiber之后，会将fiberRoot的实例的current属性指向刚创建的rootFiber
   root.current = uninitializedFiber;
+  // 同时rootFiber的stateNode属性会指向fiberRoot实例，形成相互引用
   uninitializedFiber.stateNode = root;
 
   if (enableCache) {

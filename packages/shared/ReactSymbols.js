@@ -13,6 +13,9 @@
 
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
+//  Symbol用来标记ReactElement之类的类型，如果没有native的Symbol或者polyfill，会被一个
+// 普通的number代替其运行。
+
 export let REACT_ELEMENT_TYPE = 0xeac7;
 export let REACT_PORTAL_TYPE = 0xeaca;
 export let REACT_FRAGMENT_TYPE = 0xeacb;
